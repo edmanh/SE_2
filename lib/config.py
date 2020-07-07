@@ -13,7 +13,7 @@ testing = True
 wait_for_quit = 5000
 
 # Private fixed api arguments
-my_key = 'RMLUX25VINZSEWLYKCIR5L6KJMFESHM8'
+my_key = ''
 my_id = '1123532'
 
 # System settings
