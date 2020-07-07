@@ -47,7 +47,7 @@ class ReportTypeMenu(ttk.Frame):
                 cursor='plus',
                 background='black', foreground='white',
                 font='Helvetica 11',
-                command=lambda: self.accept(),
+                command=self.accept,
                 value=api)
             btn.grid(row=rownr, column=0, padx=4, pady=2)
             rownr += 1

@@ -13,7 +13,7 @@ import lib.config as cnf
 import lib.functions as func
 from lib.api import CallApi
 from lib.messagebox import TopMessage
-
+from lib.dialogbox import DialogBox
 set_dpi_awareness()
 
 
@@ -27,7 +27,6 @@ class SetNewReport(ttk.Frame):
 
         self.controller = controller
         self.parent = parent
-        self.TopMessage = TopMessage
         self.url_fields = []
         self.api_name = ''
         self.titel_var = tk.StringVar()
@@ -74,7 +73,7 @@ class SetNewReport(ttk.Frame):
 
         # row 0 of inside_frame: page_label
         page_label = ttk.Label(self.inside_frame, textvariable=self.titel_var,
-                               text=' Rapportperiode samenstellen en rapport opvragen ',
+                               text=' Rapport ....',
                                style='PanelLabel.TLabel',
                                width=40,  # Width in chars
                                anchor=tk.CENTER)
@@ -198,10 +197,10 @@ class SetNewReport(ttk.Frame):
         self.fr_unit.grid(row=2, column=1, pady=(10, 10), padx=(10, 10))
         self.fr_unit.grid_propagate(0)
 
-        acceptbutton = tk.Button(self.inside_frame, text='Klaar',
+        acceptbutton = tk.Button(self.inside_frame, text='Verder',
                                  background='black', foreground='white',
                                  width=20, height=2, font=cnf.fa12,
-                                 command=lambda: self.accept(self.p_mode))
+                                 command=lambda: self.accept())
         acceptbutton.grid(row=6, column=0, sticky='E', padx=0, pady=20)
 
         backbutton = tk.Button(self.inside_frame, text='Terug',
@@ -309,9 +308,11 @@ class SetNewReport(ttk.Frame):
     def go_back(self):
         self.controller.lastframe()
 
-    def accept(self, mmode):
+    def accept(self):
         # User pushed ready button
         # entered values are within the allowed range so prepare the call
+        print(lineno(), f'self.p_mode = {self.p_mode}')
+        mmode = self.p_mode
         self.period_start = str(self.start_date.get_date())
         if mmode != 'date':
             self.period_start += ' '
@@ -333,65 +334,92 @@ class SetNewReport(ttk.Frame):
             print(f'self.period_unit = {self.period_unit}')
             idx = gl.list_of_units_nl.index(self.period_unit)
             self.period_unit = gl.list_of_units_en[idx]
-        print(f'self.period_start = {self.period_start}, '
-              f'self.period_end = {self.period_end}, self.period_unit = {self.period_unit}')
+        print(f'self.period_start = {self.period_start}, \n'
+              f'self.period_end = {self.period_end}, \nself.period_unit = {self.period_unit}')
 
         if not self.check_request(self.api_name,
-                                  str(self.start_date.get_date()),
-                                  str(self.stop_date.get_date()),
-                                  self.period_unit):
-            self.TopMessage(5000, 'Foutje', 'De ingevoerde waarden zijn in dit verzoek niet toegestaan')
+                                  str(self.period_start),
+                                  str(self.period_end),
+                                  self.period_unit,
+                                  mmode):
+            TopMessage(5000, 'Foutje', 'De ingevoerde waarden in dit verzoek zijn niet toegestaan')
             return
         else:
-            self.TopMessage(5000, 'Foutje', 'De ingevoerde waarden zijn toegestaan')
+            self.db = DialogBox(self, 'Vraagje ..','De ingevoerde waarden zijn toegestaan dus ...' )
+
             return
     # call saved settings
 
-    def check_request(self, api_choice, strt_date, end_date, unit):
+    def check_request(self, api_choice, strt_moment, end_moment, unit, pmode):
         # Validate user choices of 'energy', 'timeFrameEnergy','power','powerDetails','energyDetails'
-        date_strt = datetime.strptime(strt_date, "%Y-%m-%d")
-        date_end = datetime.strptime(end_date, "%Y-%m-%d")
+        if pmode == 'date':
+            pformat = "%Y-%m-%d"
+        else:
+            pformat = "%Y-%m-%d %H:%M:%S"
+        print(lineno(), f'pformat = {pformat}')
+        print(lineno(), 'strt_moment = {strt_moment}')
+        print(lineno(), 'end_moment = {strt_moment}')
+        date_strt = datetime.strptime(strt_moment, pformat)
+        date_end = datetime.strptime(end_moment, pformat)
         r = relativedelta.relativedelta(date_end, date_strt)
-        pstart = {'year': date_strt.year,
-                      'month': date_strt.month,
-                      'day': date_strt.day}
-        pend = {'year': date_end.year,
-                      'month': date_end.month,
-                      'day': date_end.day}
-        print(pstart)
-        print(pend)
-        print(r.years, r.months, r.days)
-        print(unit)
+        print(lineno(), f'r.years = {r.years}, r.months = {r.months}, r.days = {r.days}, r.hours = {r.hours}, r.minutes: {r.minutes}')
+        print(lineno(), 'unit = {unit}')
         retval = False
-        print(f'api_choice = {api_choice}')
-        if api_choice == 'energy':  #
+        print(lineno(), 'api_choice = {api_choice}')
+        # Checking settings per api
+        msg = ''  # Text for warning message
+        if api_choice == 'energy':                                  # Periodeopbrengst in detail
             if unit in 'DAY':
                 # Max 1 year
                 if r.years + (r.months * 12) + r.days > 1:
-                    # print(f"{unit} {pend['year']}>{pstart['year']} and{pend['month']}>{pstart['month']}")
+                    msg = 'De gekozen periode is te lang voor de waarden per: dag'
+                    TopMessage(5000, 'Foutje', msg)
                     retval = False
                 else:
                     retval = True
             elif unit in ('QUARTER_OF_AN_HOUR', 'HOUR'):
                 # Max 1 month
-                print('Not defined yet')
-                pass
+                if ((12 * r.years) + r.months) > 1:
+                    msg = 'De gekozen periode is te lang bij waarden per: uur of kwartier'
+                    TopMessage(5000, 'Foutje', msg)
+                    retval = False
+                else:
+                    retval = True
+            else:
+                retval = True
 
-            pass
-        elif api_choice == 'timeFrameEnergy':
-            # Max 1 year if timeUnit=DAY
-            pass
-        elif api_choice == 'power':
+        elif api_choice == 'timeFrameEnergy':                       # Periodeopbrengst samenvatting
+            # Total over given period, no limits
+            if strt_moment == end_moment:
+                msg = 'Dezelfde dag en zonder tijden is niet logisch, ' \
+                      'probeer dan liever \n"Periodeopbrengst in detail"\n' \
+                      'want daar kun je ook de tijd aangeven'
+                TopMessage(5000, 'Foutje', msg)
+                retval = False
+            retval = True
+
+        elif api_choice == 'power':                                 # Periodeopbrengst per kwartier
             # Max 1 month!!
             pass
-        elif api_choice == 'powerDetails':
+        elif api_choice == 'powerDetails':                          # Diverse energiedetails 15 min.
             # Max 1 month
+            
             pass
-        elif api_choice == 'energyDetails':
+        elif api_choice == 'energyDetails':                         # Opbrengst met intervalkeuze
             # Max 1 year if timeUnit=DAY
             # Max 1 month if resolution higher
             # NO max if resolution = low (weekly, monthly, yearly)
             pass
+        elif api_choice == 'overview':                              # Overzicht
+            pass
+        elif api_choice == 'details':                               # Installatie details
+            pass
+        elif api_choice == 'dataPeriod':                            # start- and enddate of installation
+            pass
+        elif api_choice == 'inventory':                             # List of technical installation details
+            pass
+        elif api_choice == 'envBenefits':                           # Environment benefits like CO2
+            retval = True
         else:
             pass
         return retval
@@ -399,9 +427,15 @@ class SetNewReport(ttk.Frame):
     def call_report(self):
         api_conn = CallApi
 
-        content = api_conn.get_report(self, self.api_name, self.url_args)
+        content = api_conn.get_report('self', self.api_name, self.url_args)
         if len(content):
             pass
 
     def set_text(self, txt):
         pass
+
+    def call_dialog(self, title, message):
+        d = DialogBox(self, title, message)
+        self.wait_window(d)
+        print('BACK after wait')
+        return

@@ -107,13 +107,13 @@ class SeReporter(tk.Tk):
             padding=10
             )
 
-        # style.map(
-        #    "MenuButton.TButton",
-        #    background=[("active", MENU_BUTTON_BACKGROUND), #  black
-        #                ("disabled", COLOUR_TEXT_LIGHT)],     #
-        #    foreground=[("disabled", MENU_BUTTON_BACKGROUND),
-        #                ("active", COLOUR_TEXT_LIGHT)]
-        #    )
+        style.map(
+            "MenuButton.TButton",
+            background=[("active", MENU_BUTTON_BACKGROUND), #  black
+                        ("disabled", MENU_BUTTON_TEXT)],     #
+            foreground=[("disabled", MENU_BUTTON_BACKGROUND),
+                        ("active", MENU_BUTTON_TEXT)]
+            )
         ## === End of styling ===
 
         # Prepare global data
@@ -209,4 +209,5 @@ class SeReporter(tk.Tk):
 if __name__ == "__main__":
     app = SeReporter()
 #    app.get_widget_attributes(app)
+    app.wait_window(SetNewReport.db)
     app.mainloop()

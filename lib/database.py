@@ -4,7 +4,7 @@
 
 import sqlite3 as sqlite
 from sqlite3 import Error
-import os
+
 
 
 class SqliteDb:
@@ -63,7 +63,7 @@ class SqliteDb:
         self.conn.commit()
         return self.cur.rowcount
 
-
+'''
 if __name__ == '__main__':
     # Set up the rotating logger
     import logging
@@ -80,3 +80,4 @@ if __name__ == '__main__':
     for i in range(1, 5):
         print(i)
     actdb.close()
+'''

@@ -34,6 +34,7 @@ This means that the period between endTime and startTime
 should not exceed one year or one month respectively. 
 """
 
+# The next definition is nonsens, result is total anergy and not per time unit!!
 h_timeFrameEnergy = """
 Return the site total energy produced for a given period.\n
 Limited to:
