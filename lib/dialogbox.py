@@ -22,8 +22,6 @@ class DialogBox(tk.Toplevel):
         top.quit.grid(row=1, column=1, pady=(7, 7), padx=(10, 10), sticky="e")
         top.ok = tk.Button(self, text="DOORGAAN", command=self.destroy)
         top.ok.grid(row=1, column=1, pady=(7, 7), padx=(10, 10), sticky="w")
-        print(super.__name__)
-        # super(DialogBox, self).wait_for(DialogBox)
 
 
     def close(self):

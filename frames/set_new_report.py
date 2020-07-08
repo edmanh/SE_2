@@ -345,9 +345,17 @@ class SetNewReport(ttk.Frame):
             TopMessage(5000, 'Foutje', 'De ingevoerde waarden in dit verzoek zijn niet toegestaan')
             return
         else:
-            db = DialogBox(self, 'Vraagje ..','De ingevoerde waarden zijn toegestaan dus ...' )
+            self.call_dialog('Vraagje ..','De ingevoerde waarden zijn toegestaan dus ...' )
             return
     # call saved settings
+
+    def call_dialog(self, title, message):
+        d = DialogBox(self, title, message)
+        d.grab_set()
+        self.wait_window(d)
+        d.grab_release()
+        print('BACK after wait')
+        return
 
     def wait_for(self, box):
                 self.wait_window(self.box)
