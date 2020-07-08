@@ -345,10 +345,12 @@ class SetNewReport(ttk.Frame):
             TopMessage(5000, 'Foutje', 'De ingevoerde waarden in dit verzoek zijn niet toegestaan')
             return
         else:
-            self.db = DialogBox(self, 'Vraagje ..','De ingevoerde waarden zijn toegestaan dus ...' )
-
+            db = DialogBox(self, 'Vraagje ..','De ingevoerde waarden zijn toegestaan dus ...' )
             return
     # call saved settings
+
+    def wait_for(self, box):
+                self.wait_window(self.box)
 
     def check_request(self, api_choice, strt_moment, end_moment, unit, pmode):
         # Validate user choices of 'energy', 'timeFrameEnergy','power','powerDetails','energyDetails'

@@ -209,5 +209,5 @@ class SeReporter(tk.Tk):
 if __name__ == "__main__":
     app = SeReporter()
 #    app.get_widget_attributes(app)
-    app.wait_window(SetNewReport.db)
+#    app.wait_window(SetNewReport.db)
     app.mainloop()

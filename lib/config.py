@@ -3,9 +3,12 @@
 
 """
 from os import getcwd
+import sys
 import lib.globals as gl
 import lib.functions as func
 
+sys.path.insert(0, 'D:\CloudStation\Developments\SolarEdge')
+from private import PrivateValues
 
 # If project not alive calls to web site will be skipped
 project_alive = True  # False
@@ -13,8 +16,8 @@ testing = True
 wait_for_quit = 5000
 
 # Private fixed api arguments
-my_key = 'RMLUX25VINZSEWLYKCIR5L6KJMFESHM8'
-my_id = '1123532'
+my_key = PrivateValues.my_key
+my_id = PrivateValues.my_id
 
 # System settings
 report_dir = 'reports\\'  # Without a preceding '\', this is appended to the program dir.
