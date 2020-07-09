@@ -26,8 +26,8 @@ class Desk(ttk.Frame):
         inside = ttk.Frame(self, style='Panel.TFrame')
         inside.grid(padx=30, pady=30)
 
-        label = ttk.Label(inside, text="Welkom bij SE reporter", style='PanelLabel.TLabel')
-        label.grid(row=0, column=0, pady=10, padx=20, sticky='EW')
+        page_label = ttk.Label(inside, text="Welkom bij SE reporter", style='PanelLabel.TLabel')
+        page_label.grid(row=0, column=0, pady=10, padx=20, sticky='EW')
 
         button1 = ttk.Button(inside, text='Bestaande rapporten inzien',
                              style='MenuButton.TButton',

@@ -25,7 +25,6 @@ MENU_BUTTON_TEXT = '#ffffff'
 MENU_BUTTON_BACKGROUND = 'black'
 
 
-
 class SeReporter(tk.Tk):
 
     def __init__(self, *args, **kwargs):
@@ -125,8 +124,6 @@ class SeReporter(tk.Tk):
             all_args[app] = attribs['args']
             all_info[app] = attribs['info']
             all_titles[app] = attribs['args'][0]  # App Button Titles
-
-        print(all_titles)
 
         container = tk.Frame(self, bg='#808080', bd=5)  # background = grey
         container.pack(side="top", fill="both", expand=True)

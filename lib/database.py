@@ -11,6 +11,7 @@ class SqliteDb:
     conn = None
 
     def __init__(self, my_db, slogger):
+        print(f'db = {my_db}')
         self.slogger = slogger
         self.conn = None
         try:

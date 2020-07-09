@@ -345,8 +345,8 @@ class SetNewReport(ttk.Frame):
             TopMessage(5000, 'Foutje', 'De ingevoerde waarden in dit verzoek zijn niet toegestaan')
             return
         else:
-            self.call_dialog('Vraagje ..','De ingevoerde waarden zijn toegestaan dus ...' )
-            return
+            if self.call_dialog('Vraagje ..','De ingevoerde waarden zijn toegestaan dus ...' ):
+                return
     # call saved settings
 
     def call_dialog(self, title, message):
@@ -355,7 +355,7 @@ class SetNewReport(ttk.Frame):
         self.wait_window(d)
         d.grab_release()
         print('BACK after wait')
-        return
+        return True
 
     def wait_for(self, box):
                 self.wait_window(self.box)
@@ -367,15 +367,15 @@ class SetNewReport(ttk.Frame):
         else:
             pformat = "%Y-%m-%d %H:%M:%S"
         print(lineno(), f'pformat = {pformat}')
-        print(lineno(), 'strt_moment = {strt_moment}')
-        print(lineno(), 'end_moment = {strt_moment}')
+        print(lineno(), f'strt_moment = {strt_moment}')
+        print(lineno(), f'end_moment = {strt_moment}')
         date_strt = datetime.strptime(strt_moment, pformat)
         date_end = datetime.strptime(end_moment, pformat)
         r = relativedelta.relativedelta(date_end, date_strt)
         print(lineno(), f'r.years = {r.years}, r.months = {r.months}, r.days = {r.days}, r.hours = {r.hours}, r.minutes: {r.minutes}')
-        print(lineno(), 'unit = {unit}')
+        print(lineno(), f'unit = {unit}')
         retval = False
-        print(lineno(), 'api_choice = {api_choice}')
+        print(lineno(), f'api_choice = {api_choice}')
         # Checking settings per api
         msg = ''  # Text for warning message
         if api_choice == 'energy':                                  # Periodeopbrengst in detail

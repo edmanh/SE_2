@@ -7,13 +7,12 @@ import sys
 import lib.globals as gl
 import lib.functions as func
 
-sys.path.insert(0, 'D:\CloudStation\Developments\SolarEdge')
+sys.path.insert(0, 'D:\CloudStation\Developments\SolarEdge')  # Location of private files
 from private import PrivateValues
 
 # If project not alive calls to web site will be skipped
-project_alive = True  # False
 testing = True
-wait_for_quit = 5000
+wfquit = 5000  # Wait for quit == automatic close message pop-up
 
 # Private fixed api arguments
 my_key = PrivateValues.my_key
@@ -63,10 +62,6 @@ api_config = {  # Translation and arguments to provide for a particular api
     }
 
 # Set up app indices for translated choices and help balloons
-query = 'SELECT api_name, help_text from helptext'
-names, help_records = func.actdb.exec_select(query)
-for record in help_records:
-    gl.help_dict[record[0]] = record[1]
 
 all_titles = dict()   # Holds button titles
 all_args = dict()     # Holds api args
@@ -119,4 +114,9 @@ api_config = {  # Translation and arguments to provide for a particular api
 
 
 '''
-
+'''
+query = 'SELECT api_name, help_text from helptext'
+names, help_records = func.actdb.exec_select(query)
+for record in help_records:
+    gl.help_dict[record[0]] = record[1]
+'''
