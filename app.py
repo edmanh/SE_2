@@ -150,9 +150,13 @@ class SeReporter(tk.Tk):
         self.set_title(page_name)
         self.framehist.append(page_name)
         frame = self.frames[page_name]
-        print(f'geo = {frame.geo}')
         if 'x' in frame.geo:
-            self.geometry(frame.geo)
+            geo = frame.geo + '+50+50'
+            self.geometry(geo)
+            print(f'org geo of {page_name}.geo = {frame.geo}\n'
+                  f'new geo = {geo}')
+        else:
+            print('NO GEO defined')
         if self.message:
             msg = self.message
             frame.set_text(msg)

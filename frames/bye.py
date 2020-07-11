@@ -9,7 +9,7 @@ set_dpi_awareness()
 
 
 class ByeBye(ttk.Frame):
-    geo = '500x500+100+100'
+    geo = '500x500'
 
     def __init__(self, parent, controller):
         """ parent = container frame,

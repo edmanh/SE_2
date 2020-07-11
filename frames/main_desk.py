@@ -8,7 +8,7 @@ import lib.config
 set_dpi_awareness()
 
 class Desk(ttk.Frame):
-    geo = '500x600+100+100'
+    geo = '500x600'
 
     def __init__(self, parent, controller):
         """ parent = Frame container,

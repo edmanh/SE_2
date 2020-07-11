@@ -5,6 +5,7 @@ period_end = ''
 period_unit = ''
 user_choice = ''
 user_val = 0
+next_step = ''
 
 
 title_dict = {}   # api: button titles

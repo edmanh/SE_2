@@ -13,7 +13,7 @@ from lib.formatter import FormatIt
 set_dpi_awareness()
 
 class ViewReport(ttk.Frame):
-    geo = '800x900+100+100'
+    geo = '800x900'
 
     def __init__(self, parent, controller):
         """ parent = Frame container,

@@ -8,7 +8,7 @@ from lib.functions import set_dpi_awareness
 set_dpi_awareness()
 
 class ReportTypeMenu(ttk.Frame):
-    geo = '500x700+100+100'
+    geo = '500x700'
 
     def __init__(self, parent, controller):
         """ parent = Frame container,
