@@ -1,11 +1,9 @@
-import tkinter as tk
 from tkinter import ttk
-from tkinter import font  as tkfont
 from lib.functions import lineno
 from lib.functions import set_dpi_awareness
-import lib.config
 
 set_dpi_awareness()
+
 
 class Desk(ttk.Frame):
     geo = '500x600'
@@ -50,7 +48,7 @@ class Desk(ttk.Frame):
     def close_me(self):
         msg = 'Een beetje snel maar OK,\nVolgende keer beter.'
         self.controller.set_message(msg)
-        print(f'{__name__}-{lineno()} Val = {self.controller.message}')
+        # print(f'{__name__}-{lineno()} Val = {self.controller.message}')
         self.controller.show_frame("ByeBye")
 
     def set_text(self, txt):

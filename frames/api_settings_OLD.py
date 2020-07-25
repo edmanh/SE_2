@@ -70,7 +70,7 @@ class ApiSettings(ttk.Frame):
         stpframe.grid(row=3, sticky='ew')  # , pady=10
 
         titlelabel = Label(titleframe,
-                           text=f'Vaststellen periode voor {kwargs.get("api_name")}',
+                           text=f'Vaststellen periode voor {kwargs.get("name")}',
                            font=cnf.fh12)
         titlelabel.grid(row=0, padx=5, pady=5)
 

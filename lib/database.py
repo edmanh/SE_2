@@ -4,7 +4,7 @@
 
 import sqlite3 as sqlite
 from sqlite3 import Error
-
+# from lib.functions import lineno
 
 
 class SqliteDb:
@@ -28,12 +28,12 @@ class SqliteDb:
         self.conn.close()
 
     def exec_select(self, query):
+        print(f'{__name__}-31: query = {query}')
         self.cur.execute(query)
         names = [colname[0] for colname in self.cur.description]
         return names, self.cur.fetchall()
 
     def exec_update(self, query):
-        print(query)
         self.cur.execute(query)
         self.conn.commit()
         return self.cur.rowcount
@@ -63,22 +63,3 @@ class SqliteDb:
         self.cur.executemany(query, llist)
         self.conn.commit()
         return self.cur.rowcount
-
-'''
-if __name__ == '__main__':
-    # Set up the rotating logger
-    import logging
-    from logging.handlers import RotatingFileHandler
-
-    selogger = logging.getLogger('selogger')
-    selogger.setLevel(logging.INFO)
-    handler = RotatingFileHandler('selog.log', maxBytes=1000, backupCount=0)
-    selogger.addHandler(handler)
-    logging.basicConfig(format='%(asctime)s [%(module)s - %(lineno)03d] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-
-    print('cwd = {}'.format(os.getcwd()))
-    actdb = SqliteDb('testdb', selogger)
-    for i in range(1, 5):
-        print(i)
-    actdb.close()
-'''

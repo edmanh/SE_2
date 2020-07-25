@@ -1,5 +1,7 @@
-import os
-from datetime import datetime
+"""
+
+"""
+from datetime import datetime, timedelta
 from dateutil import relativedelta
 import tkinter as tk
 from tkinter import ttk
@@ -15,6 +17,7 @@ from lib.api import CallApi
 from lib.messagebox import TopMessage
 from lib.dialogbox import DialogBox
 set_dpi_awareness()
+api = gl.MyApi
 
 
 class SetNewReport(ttk.Frame):
@@ -29,7 +32,6 @@ class SetNewReport(ttk.Frame):
         self.parent = parent
         gl.next_step = 'empty'
         self.url_fields = []
-        self.api_name = ''
         self.titel_var = tk.StringVar()
         self.choice_var = tk.StringVar()
         self.protocol_var = tk.StringVar()
@@ -38,29 +40,20 @@ class SetNewReport(ttk.Frame):
         self.val_end_hr = tk.StringVar()
         self.val_end_min = tk.StringVar()
 
-        # periode start
+        # periode definitions
         self.period_start = ''
-        self.p_start = ''
-        self.stop_year = 2020
-        self.stop_month = 1
-        self.stop_day = 1
-
-        # periode end
         self.period_end = ''
-        self.p_end = ''
-        self.strt_year = 2020
-        self.strt_month = 1
-        self.strt_day = 1
-
         self.period_unit = ''
+        self.start_it = datetime.now()
+        self.stop_it = func.add_one_month(datetime.now())
 
         # accept value
-        self.p_mode = ''
         self.p_start = ''
         self.p_stop = ''
+        self.p_mode = ''
         self.p_unit = ''
 
-        self.setval = ''
+        api.num_args = 0
 
         # defenitions background Frame
         self.grid_rowconfigure(1, weight=1)
@@ -120,9 +113,10 @@ class SetNewReport(ttk.Frame):
         self.fr_strt_date.grid(row=0, column=0, sticky='W', pady=(5, 10), padx=(10, 10))
         self.fr_strt_date.grid_propagate(0)
         self.start_date = DateEntry(self.fr_strt_date, width=12, date_pattern='yyy-mm-dd', font=cnf.fa12,
-                                    year=self.strt_year, month=self.strt_month, day=self.strt_day,
+                                    #  year=self.strt_year, month=self.strt_month, day=self.strt_day,
                                     background='#0000ff', foreground='white')
         self.start_date.grid(row=0, column=0, padx=20, pady=10)
+        self.start_date.set_date(self.start_it)
         #        std_width = self.fr_strt_date.winfo_width()
         # right = stop date
         fr_stop_date_label = tk.Label(self.fr_settings, text=' Stopdatum ', font=cnf.fa12, fg='black', bg='#ffefd8')
@@ -131,9 +125,10 @@ class SetNewReport(ttk.Frame):
                                            style='Panel.TFrame',
                                            relief=tk.GROOVE)
         self.stop_date = DateEntry(self.fr_stop_date, width=12, date_pattern='yyy-mm-dd', font=cnf.fh12,
-                                  year=self.stop_year, month=self.stop_month, day=self.stop_day,
+                                  #  year=self.stop_year, month=self.stop_month, day=self.stop_day,
                                   background='blue', foreground='white')
         self.stop_date.grid(row=0, column=1, padx=20, pady=10)
+        self.stop_date.set_date(self.stop_it)
 
         self.fr_stop_date.grid(row=1, column=1, sticky='E', pady=(5, 10), padx=(10, 10))
         self.fr_stop_date.grid_propagate(0)
@@ -189,8 +184,9 @@ class SetNewReport(ttk.Frame):
                                       style='Panel.TFrame',
                                       relief=tk.GROOVE)
         self.unit_var = tk.StringVar()
-        self.unit_var.set(self.setval)
-        self.unit = ttk.OptionMenu(self.fr_unit, self.unit_var, *gl.list_of_units_nl, command=self.set_time_unit)
+        self.unit_var.set(gl.list_of_units_nl[0])
+        self.unit = ttk.OptionMenu(self.fr_unit, self.unit_var, *gl.list_of_units_nl,
+                                   command=lambda x: self.set_time_unit(self, x))
         self.unit_var.set(gl.list_of_units_nl[0])
         self.unit['menu'].configure(font=cnf.fa12)
         self.unit.configure(style='ChoiceButton.TButton')
@@ -211,31 +207,37 @@ class SetNewReport(ttk.Frame):
         backbutton.grid(row=6, column=0, sticky='W', padx=0, pady=20)
 
     @staticmethod
-    def set_time_unit(val):
+    def set_time_unit(self, val):
         print(f'returned val: {val}')
         pass
 
     def go(self):
-        self.api_name = self.parent.report_type
-        # report_tmp_path = os.path.join(cnf.myhome, cnf.tmp_file)
-        # print(f'{lineno()} - cnf.tmp_file = {report_tmp_path}')
-        # print(f'{lineno()} - self.parent.report_type = {self.api_name}')
+        """
+        User has chosen for a new report of a particular type
+        Hide or show widgets dependent on api.name
+        and get the right start values
+        (from history database or defaults) into the widgets.
+        :return:
+        """
+
+        #  api.name = self.parent.report_type
         self.titel_var.set(f' Rapportperiode samenstellen en rapport opvragen ')
-        self.choice_var.set(f' Raportkeuze = "{cnf.all_titles.get(self.api_name)}"')
-        self.protocol_var.set(f' Protocolnaam = "{self.api_name}"')
+        self.choice_var.set(f' Raportkeuze = "{cnf.all_titles.get(api.name)}"')
+        self.protocol_var.set(f' Protocolnaam = "{api.name}"')
         # Get values to complete the arg list
-        api_args = cnf.all_args[self.api_name][1:]  # args needed for the choosen api, skip translated title
-        api_num_args = len(api_args)
+        api_args = cnf.all_args[api.name][1:]  # args needed for the choosen api, skip translated title
+        api.num_args = len(api_args)
         selogger.info(
-            f'Gekozen titel: {cnf.all_titles[self.api_name]}, '
-            f'de api naam is {self.api_name}, aantal args = {api_num_args}')
+            f'Gekozen titel: {cnf.all_titles[api.name]}, '
+            f'de api naam is {api.name}, aantal args = {api.num_args}')
 
         self.infotext.delete('1.0', tk.END)
-        self.infotext.insert(tk.END, cnf.api_config[self.api_name]['info'])
-        print(cnf.all_args[self.api_name])
-        print(f'api_num_args = {api_num_args}')
-        print(cnf.api_config[self.api_name]['info'])
-        if api_num_args == 0:
+        self.infotext.insert(tk.END, cnf.api_config[api.name]['info'])
+        print(f'{__name__}-{lineno()}: cnf.all_args[my.name] = {cnf.all_args[api.name]}')
+        print(f'{__name__}-{lineno()}: api.num_args = {api.num_args}')
+        #  print(cnf.api_config[api.name]['info'])
+        if api.num_args == 0:
+            # Requests without period definitions
             self.fr_unit.grid_remove()
             self.fr_strt_date.grid_remove()
             self.fr_stop_date.grid_remove()
@@ -243,21 +245,38 @@ class SetNewReport(ttk.Frame):
             self.fr_stop_time.grid_remove()
             self.fr_settings.grid_remove()
         else:
+            # Requests with date and/or date-time definitions
             self.fr_settings.grid(row=2, padx=20, pady=10)
-            for nwArg in api_args:
-                if nwArg in 'startDate':
+            api.url_args.clear()  # in case user chooses new report type
+            #  Possible arguments are: startDate + endDate OR startTime + endTime AND OPTIONAL timeUnit
+            for next_arg in api_args:
+                if next_arg == 'startDate':
+                    # Set both date entries visible
                     self.fr_strt_date.grid(row=0, column=0, sticky='W', pady=(10, 10), padx=(10, 10))
                     self.fr_stop_date.grid(row=0, column=1, sticky='E', pady=(10, 10), padx=(10, 10))
-                if nwArg in 'startTime':
+                    api.url_args['startDate'] = ''
+                    api.url_args['endDate'] = ''
+                elif next_arg == 'startTime':
+                    # Set both date + time entries visible
                     self.fr_strt_date.grid(row=0, column=0, sticky='W', pady=(10, 10), padx=(10, 10))
                     self.fr_stop_date.grid(row=0, column=1, sticky='E', pady=(10, 10), padx=(10, 10))
                     self.fr_strt_time.grid(row=1, column=0, sticky='W', pady=(10, 10), padx=(10, 0))
                     self.fr_stop_time.grid(row=1, column=1, sticky='E', pady=(10, 10), padx=(10, 10))
-                if nwArg in 'timeUnit':
+                    api.url_args['startTime'] = ''
+                    api.url_args['endTime'] = ''
+                elif next_arg in 'timeUnit':
+                    # Set interval choice visible
                     self.fr_unit.grid(row=2, column=1, pady=(10, 10), padx=(10, 10))
+                    api.url_args['timeUnit'] = ''
 
             # Fill widgets with last saved values
-            arg_db_values = func.get_api_values(self.api_name)  # database action
+            arg_db_values = func.get_api_values(api.name)  # database action
+            if 'startDate' in arg_db_values:
+                if len(arg_db_values['startDate']):
+                    self.start_date.set_date(arg_db_values['startDate'])
+            if 'endDate' in arg_db_values:
+                if len(arg_db_values['endDate']):
+                    self.stop_date.set_date(arg_db_values['endDate'])
 
             if 'timeUnit' in api_args:
                 p_unit = arg_db_values['timeUnit']
@@ -265,8 +284,6 @@ class SetNewReport(ttk.Frame):
             else:
                 p_unit = ''
                 self.fr_unit.grid_forget()
-            self.p_start = ''
-            self.p_mode = ''
             if 'startDate' in api_args:
                 self.p_start = arg_db_values['startDate']
                 self.p_mode = 'date'
@@ -284,38 +301,27 @@ class SetNewReport(ttk.Frame):
                 self.p_stop = arg_db_values['endTime']
                 self.url_fields.append('endTime')
 
-            if len(self.p_start) < 4:
-                self.p_start = '2020-01-01 12:00:00'
-            self.strt_year = int(self.p_start[0:4])
-            self.strt_month = int(self.p_start[5:7])
-            self.strt_day = int(self.p_start[8:10])
-            if len(self.p_end) < 4:
-                self.p_end = '2020-01-01 12:00:00'
-            self.stop_year = int(self.p_end[0:4])
-            self.stop_month = int(self.p_end[5:7])
-            self.stop_day = int(self.p_end[8:10])
+            # self.p_start = '2020-01-01 12:00:00'  # api compatible yyyy-mm-dd (and if time defined) hh:mm:ss
+            # self.p_end = '2020-01-01 12:00:00'  # api compatible yyyy-mm-dd (and if time defined) hh:mm:ss
 
             if p_unit != '':
-                self.setval = 'Dag'
+                self.unit_var.set('Dag')
                 if len(self.p_unit) > 1:
-                    self.setval = self.p_unit
+                    self.unit_var.set(self.p_unit)
 
-            print(f'self.url_fields = {self.url_fields}')
-    #        gui.attributes('-alpha', 1.0)  # EM: maakt weer zichtbaar
+            print(lineno(), 'self.url_fields = {self.url_fields}')
             base_width = self.info_frame.winfo_width()
-            print(f'WIDTH = {base_width}')
             self.fr_settings.configure(width=base_width)
+        print(f"Var's in {__name__}: {dir()}")
 
     def go_back(self):
         self.controller.lastframe()
 
     def accept(self):
         # User pushed ready button
-        # entered values are within the allowed range so prepare the call
-        print(lineno(), f'self.p_mode = {self.p_mode}')
-        mmode = self.p_mode
+        # entered values must be api formatted and checked
         self.period_start = str(self.start_date.get_date())
-        if mmode != 'date':
+        if self.p_mode != 'date':
             self.period_start += ' '
             self.period_start += str(self.val_strt_hr.get())
             self.period_start += ':'
@@ -323,7 +329,7 @@ class SetNewReport(ttk.Frame):
             self.period_start += ':00'
 
         self.period_end = str(self.stop_date.get_date())
-        if mmode != 'date':
+        if self.p_mode != 'date':
             self.period_end += ' '
             self.period_end += str(self.val_end_hr.get())
             self.period_end += ':'
@@ -335,58 +341,100 @@ class SetNewReport(ttk.Frame):
             print(f'self.period_unit = {self.period_unit}')
             idx = gl.list_of_units_nl.index(self.period_unit)
             self.period_unit = gl.list_of_units_en[idx]
-        print(f'self.period_start = {self.period_start}, \n'
+        print(lineno(), f'self.period_start = {self.period_start}, '
               f'self.period_end = {self.period_end}, \nself.period_unit = {self.period_unit}')
 
-        if not self.check_request(self.api_name,
+        if not self.check_request(self,
+                                  api.name,
                                   str(self.period_start),
                                   str(self.period_end),
                                   self.period_unit,
-                                  mmode):
+                                  self.p_mode):
             TopMessage(cnf.wfquit, 'Foutje', 'De ingevoerde waarden in dit verzoek zijn niet toegestaan')
             return
         else:
-            self.call_dialog('Vraagje ..', 'De ingevoerde waarden zijn toegestaan dus ...')
+            dp = dict()
+            dp.clear()
+            dp['title'] = 'Vraagje ..'
+            dp['message'] = 'De ingevoerde waarden zijn toegestaan dus ...'
+            dp['deny'] = 'Terug'
+            dp['accept'] = 'OK, Doorgaan'
+            self.call_dialog(**dp)
             if gl.next_step == 'no action':
                 return
-            else:
-                #
-        #
-        # call saved settings
+            # First ask for saving parameters
+            dp.clear()
+            dp['title'] = 'Nog een vraagje ..'
+            dp['message'] = 'Instellingen eerst opslaan (in database) als nieuwe basiswaarde?'
+            dp['deny'] = 'Terug'
+            dp['accept'] = 'Opslaan graag'
+            self.call_dialog(**dp)
+            if gl.next_step == 'no action':
+                return
+            # Save new values in database
+            print(f'{__name__}-{lineno()}: api.url_args = {api.url_args}')
+            query = 'UPDATE settings SET '
+            for name, val in api.url_args.items():
+                if name == 'timeUnit':
+                    if val in gl.list_of_units_en:
+                        val = gl.list_of_units_nl[gl.list_of_units_en.index(val)]
+                query += f'{name} = "{val}", '
+            query = query[0:-2]  # remove last comma-space
+            query += f' WHERE name = "{api.name}"'
+            print(lineno(), f'query = {query}')
+            rows = func.actdb.exec_update(query)
+            if rows > 0:
+                selogger.info('Laatste instellingen opgeslagen.')
+
+        #   =========================================================================================
 
     @staticmethod
-    def check_request(api_choice, strt_moment, end_moment, unit, pmode):
+    def check_request(self, api_choice, strt_moment, end_moment, unit, pmode):
         # Validate user choices of 'energy', 'timeFrameEnergy','power','powerDetails','energyDetails'
         if pmode == 'date':
             pformat = "%Y-%m-%d"
-        else:
+        else:   # pmode == 'time'
             pformat = "%Y-%m-%d %H:%M:%S"
-        print(lineno(), f'pformat = {pformat}')
-        print(lineno(), f'strt_moment = {strt_moment}')
-        print(lineno(), f'end_moment = {strt_moment}')
-        date_strt = datetime.strptime(strt_moment, pformat)
-        date_end = datetime.strptime(end_moment, pformat)
-        r = relativedelta.relativedelta(date_end, date_strt)
-        print(lineno(), f'r.years = {r.years}, r.months = {r.months}, r.days = {r.days}, r.hours = {r.hours}, r.minutes: {r.minutes}')
-        print(lineno(), f'unit = {unit}')
+        #  print(f'{__name__}-{lineno()}: pformat = {pformat}')
+        print(f'{__name__}-{lineno()}: strt_moment = {strt_moment}')
+        print(f'{__name__}-{lineno()}: end_moment = {end_moment}')
+        dt_obj_strt = datetime.strptime(strt_moment, pformat)
+        dt_obj_end = datetime.strptime(end_moment, pformat)
+        r = relativedelta.relativedelta(dt_obj_end, dt_obj_strt)
+        print(f'{__name__}-{lineno()}: r.years = {r.years}, r.months = {r.months}, r.days = {r.days}, r.hours = {r.hours}, r.minutes: {r.minutes}')
+        print(f'{__name__}-{lineno()}: unit = {unit}')
         ret_val = False
-        print(lineno(), f'api_choice = {api_choice}')
+        print(f'{__name__}-{lineno()}: api_choice = {api_choice}')
 
         # Checking settings per api
+        d = dict()
+        d['strt'] = strt_moment
+        d['end'] = end_moment
         if api_choice == 'energy':                                  # Periodeopbrengst in detail
             if unit in 'DAY':
                 # Max 1 year
-                if r.years + (r.months * 12) + r.days > 1:
+                d['delta'] = 'year'
+                res = func.check_periode_limit(None, **d)
+                if res == 1:
                     msg = 'De gekozen periode is te lang voor de waarden per: dag'
+                    TopMessage(cnf.wfquit, 'Foutje', msg)
+                    ret_val = False
+                elif res == -1:
+                    msg = 'De start- en einddatums zijn omgedraaid'
                     TopMessage(cnf.wfquit, 'Foutje', msg)
                     ret_val = False
                 else:
                     ret_val = True
             elif unit in ('QUARTER_OF_AN_HOUR', 'HOUR'):
                 # Max 1 month
-                next_stop = func.add_one_month(date_strt)
-                if next_stop > date_end:
+                d['delta'] = 'month'
+                res = func.check_periode_limit(None, **d)
+                if res == 1:
                     msg = 'De gekozen periode is te lang bij waarden per: uur of kwartier'
+                    TopMessage(cnf.wfquit, 'Foutje', msg)
+                    ret_val = False
+                elif res == -1:
+                    msg = 'De start- en einddatums zijn omgedraaid'
                     TopMessage(cnf.wfquit, 'Foutje', msg)
                     ret_val = False
                 else:
@@ -403,31 +451,34 @@ class SetNewReport(ttk.Frame):
                 TopMessage(cnf.wfquit, 'Foutje', msg)
                 ret_val = False
             else:
-                ret_val = True
-
+                d['delta'] = ''
+                res = func.check_periode_limit(None, **d)
+                if res == -1:
+                    msg = 'Stopdatum dient ná Startdatum te liggen'
+                    TopMessage(cnf.wfquit, 'Foutje', msg)
+                    ret_val = False
+                else:
+                    ret_val = True
         elif api_choice == 'power':                                 # Periodeopbrengst per kwartier
             # Max 1 month!!
-            next_stop = func.add_one_month(date_strt)
-            if next_stop > date_end:
-                msg = 'Dit rapport levert kwartierwaarden en mag daarom niet langer zijn dan één maand'
+            d['delta'] = 'month'
+            res = func.check_periode_limit(None, **d)
+            if res == 1:
+                msg = 'Dit rapport levert kwartierwaarden en mag daarom niet langer zijn dan één maand\n' \
+                      'Tip: let op de tijden!'
+                TopMessage(cnf.wfquit, 'Foutje', msg)
+                ret_val = False
+            elif res == -1:
+                msg = 'Stopdatum (plus tijd) dient ná Startdatum (plus tijd) te liggen'
                 TopMessage(cnf.wfquit, 'Foutje', msg)
                 ret_val = False
             else:
                 ret_val = True
-
-        elif api_choice == 'overview':                              # Overzicht
-            ret_val = True
-            pass
-        elif api_choice == 'details':                               # Installatie details
-            ret_val = True
-            pass
-        elif api_choice == 'dataPeriod':                            # start- and enddate of installation
-            ret_val = True
-            pass
-        elif api_choice == 'inventory':                             # List of technical installation details
-            ret_val = True
-            pass
-        elif api_choice == 'envBenefits':                           # Environment benefits like CO2
+        elif api_choice in ('overview',      # Overzicht
+                            'details',       # Installatie details
+                            'dataPeriod',    # start- and enddate of installation
+                            'inventory',     # List of technical installation details
+                            'envBenefits'):  # Environment benefits like CO2
             ret_val = True
         else:
             pass
@@ -435,17 +486,17 @@ class SetNewReport(ttk.Frame):
 
     def call_report(self):
         api_conn = CallApi
-        content = api_conn.get_report('self', self.api_name, self.url_args)
+        content = api_conn.get_report(api.name, api.url_args)
         if len(content):
             pass
 
     def set_text(self, txt):
         pass
 
-    def call_dialog(self, title, message):
-        d = DialogBox(self, title, message)
+    def call_dialog(self, *args, **kwargs):
+        d = DialogBox(self, *args, **kwargs)
         d.grab_set()
         self.wait_window(d)
         d.grab_release()
-        print(f'BACK after wait with gl.next_step = {gl.next_step}')
+        #  print(f'BACK after wait with gl.next_step = {gl.next_step}')
         return

@@ -7,6 +7,12 @@ user_choice = ''
 user_val = 0
 next_step = ''
 
+class MyApi:
+    # A vault for all api related parameters
+    # to be shared between modules
+    name = ''
+    url_args = dict()
+    pass
 
 title_dict = {}   # api: button titles
 help_dict = {}    # api: help_text

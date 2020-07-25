@@ -2,7 +2,7 @@
     Generaly used functions and initialisation
     lineno() for printing where something happened
     init_table() to organize an empty database
-    get_api_values(<api name>) to get stored api settings
+    get_api_values(<api name>) to get stored api settings from database
 
     setting up the logger
     checking/generating database
@@ -38,7 +38,7 @@ def init_table(se_db, table):
         query = """\
 CREATE TABLE settings (\
 id integer PRIMARY KEY AUTOINCREMENT,\
-api_name text ,\
+name text ,\
 timeUnit text,\
 startDate text,\
 endDate text,\
@@ -57,21 +57,25 @@ endTime text\
                    ('inventory', '', '', '', '', ''),
                    ('envBenefits', '', '', '', '', '')]
         rows = se_db.exec_executemany('INSERT INTO settings ' +
-                                      '(api_name, timeUnit, startDate, endDate, startTime, endTime) ' +
+                                      '(name, timeUnit, startDate, endDate, startTime, endTime) ' +
                                       ' VALUES(?, ?, ?, ?, ?, ?);', records)
         print(f'Tabel {table} build and filled with {rows} rows with default values.')
         return rows
 
 
-def get_api_values(a_name):
+def get_api_values(api_name):
     # Load last used values for api a_name, if available and else all defaults
-    a_query = f'SELECT * FROM settings WHERE api_name = "{a_name}"'
+    a_query = f'SELECT * FROM settings WHERE api_name = "{api_name}"'
+    print(f'{__name__}-{lineno()}: query = {a_query}')
     a_names, a_rows = actdb.exec_select(a_query)
     a_row = a_rows[0]  # Result of final query
     arg_db_settings = {}
     for x in range(0, len(a_names)):
         arg_db_settings[a_names[x]] = a_row[x]
     return arg_db_settings
+
+def set_api_value():
+    pass
 
 
 # Set up the rotating logger
@@ -112,3 +116,44 @@ def add_one_month(t):
     return one_month_later
 
 
+def check_periode_limit(*x, **y):
+    # Must check if d2 > d1 and if d2 - d1 <= delta
+    print(f'in check periode **y = {y}')
+    val = 1  # default return value, 1 = out of limit
+    fmt_t = "%Y-%m-%d %H:%M"  # long date format
+    fmt_d = "%Y-%m-%d"  # short date format
+    delta = y['delta']
+    s_strt = y['strt'][0: 16]  # strip eventual seconds
+    s_end = y['end'][0: 16]  # idem
+    # print(s_strt, s_end)
+    if len(s_strt) > 10:
+        d_strt = datetime.strptime(s_strt, fmt_t)
+    else:
+        d_strt = datetime.strptime(s_strt, fmt_d)
+    if len(s_end) > 10:
+        d_end = datetime.strptime(s_end, fmt_t)
+    else:
+        d_end = datetime.strptime(s_end, fmt_d)
+    r = relativedelta.relativedelta(d_end, d_strt)
+    p_diff = (d_end - d_strt).total_seconds()
+    print(f'In periode check: p_diff = {p_diff}')
+    if p_diff < 0:
+        return -1
+    if delta == '':
+        return 1        # no periode check needed
+    elif delta == 'month':
+        if r.years > 1:
+            val = 1
+        elif r.months == 0:
+            val = 0
+        elif r.months == 1 & (r.days + r.hours + r.minutes) == 0:
+            val = 0
+    elif delta == 'year':
+        if r.years > 1:
+            val = 1
+        elif r.years == 0:
+            val = 0
+        elif r.years == 1 & (r.months + r.days + r.hours + r.minutes) == 0:
+            val = 0
+        pass
+    return val

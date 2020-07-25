@@ -5,7 +5,10 @@ import lib.config as cnf
 import lib.globals as gl
 from lib.functions import set_dpi_awareness
 
+api = gl.MyApi
 set_dpi_awareness()
+
+print(f"Var's in {__name__}: {dir()}")
 
 class ReportTypeMenu(ttk.Frame):
     geo = '500x700'
@@ -14,9 +17,6 @@ class ReportTypeMenu(ttk.Frame):
         """ parent = Frame container,
             controller = class SeReporter() """
         super().__init__(parent)
-
-#         bg_color = controller.MENU_BUTTON_BACKGROUND
-#         fg_color = controller.MENU_BUTTON_TEXT
 
         self.controller = controller
         self.parent = parent
@@ -36,7 +36,7 @@ class ReportTypeMenu(ttk.Frame):
         self.v = tk.StringVar()
         print(f'Start building Radiobutton')
         rownr = 1
-        for api, title in cnf.all_titles.items():
+        for name, title in cnf.all_titles.items():
             btn = tk.Radiobutton(
                 inside,
                 text=title,
@@ -48,7 +48,7 @@ class ReportTypeMenu(ttk.Frame):
                 background='black', foreground='white',
                 font='Helvetica 11',
                 command=self.accept,
-                value=api)
+                value=name)
             btn.grid(row=rownr, column=0, padx=4, pady=2)
             rownr += 1
 #            CreateToolTip(btn, 'Ter info:\nDe api naam = ' + api)
@@ -64,7 +64,7 @@ class ReportTypeMenu(ttk.Frame):
         self.controller.lastframe()
 
     def accept(self):
-        self.parent.report_type = self.v.get()
+        api.name = self.v.get()  # self.parent.report_type
         self.controller.set_trigger('newReport')
         self.controller.show_frame('SetNewReport')
         self.v.set(None)

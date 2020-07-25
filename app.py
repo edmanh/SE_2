@@ -1,16 +1,17 @@
+import os
 import tkinter as tk
 from tkinter import ttk
 from tkinter import font as tkfont
-import logging
 from frames import Desk, Empty, ByeBye, ReportTypeMenu, ViewReport, GetHistReport, SetNewReport
 import lib.config as cnf
 from lib.functions import lineno
 from lib.functions import set_dpi_awareness
-import lib.globals as gl
+from lib.functions import selogger
 
-# Start logging
-# selogger.info('\n\n\t-------------- Start logging --------------')
-# selogger.info(f'cwd = {cwd}')
+
+# Start logging, selogger is created in
+selogger.info('\n\n\t-------------- Start logging --------------')
+selogger.info(f'cwd = {os.getcwd()}')
 
 
 set_dpi_awareness()
@@ -37,7 +38,6 @@ class SeReporter(tk.Tk):
         self.trigger_show_rap = tk.IntVar(value=0)
         self.framehist = list()
         self.tmp_file = False
-        self.report_type = ''
 
         # === Start of styling ===
         style = ttk.Style()
@@ -108,22 +108,22 @@ class SeReporter(tk.Tk):
 
         style.map(
             "MenuButton.TButton",
-            background=[("active", MENU_BUTTON_BACKGROUND), #  black
+            background=[("active", MENU_BUTTON_BACKGROUND),  # black
                         ("disabled", MENU_BUTTON_TEXT)],     #
             foreground=[("disabled", MENU_BUTTON_BACKGROUND),
                         ("active", MENU_BUTTON_TEXT)]
             )
-        ## === End of styling ===
+        # === End of styling ===
 
         # Prepare global data
         print(f'Prepare globaly used dicts')
         all_args = dict()  # Holds api args
         all_info = dict()  # Holds api info
         all_titles = dict()  # Holds choice button titles
-        for app, attribs in cnf.api_config.items():
-            all_args[app] = attribs['args']
-            all_info[app] = attribs['info']
-            all_titles[app] = attribs['args'][0]  # App Button Titles
+        for a, attribs in cnf.api_config.items():
+            all_args[a] = attribs['args']
+            all_info[a] = attribs['info']
+            all_titles[a] = attribs['args'][0]  # App Button Titles
 
         container = tk.Frame(self, bg='#808080', bd=5)  # background = grey
         container.pack(side="top", fill="both", expand=True)
@@ -133,14 +133,14 @@ class SeReporter(tk.Tk):
         self.frames = {}
         for F in (Desk, ReportTypeMenu, ViewReport, Empty, ByeBye, GetHistReport, SetNewReport):
             page_name = F.__name__
-            print(f'Loaded module {page_name}')
+            # print(f'Loaded module {page_name}')
             frame = F(parent=container, controller=self)
             self.frames[page_name] = frame
             # put all of the pages in the same location;
             # the one on the top of the stacking order
             # will be the one that is visible.
             frame.grid(row=0, column=0, sticky='nsew')
-
+        print(f"Var's in {__name__}: {dir()}")
         self.show_frame('Desk')
 
         # self.get_widget_attributes(self.container)  # .container
@@ -153,14 +153,14 @@ class SeReporter(tk.Tk):
         if 'x' in frame.geo:
             geo = frame.geo + '+50+50'
             self.geometry(geo)
-            print(f'org geo of {page_name}.geo = {frame.geo}\n'
-                  f'new geo = {geo}')
+            #  print(f'org geo of {page_name}.geo = {frame.geo}\n'
+            #       f'new geo = {geo}')
         else:
             print('NO GEO defined')
         if self.message:
             msg = self.message
             frame.set_text(msg)
-        print(f'>>>Start showing frame - {page_name} -')
+        print('\033[1;31;47m',f'Showing      ---      {page_name}      ---','\033[m')
         frame.tkraise()
         if hasattr(frame, 'go'):
             print(f'{page_name} has go as attr')
