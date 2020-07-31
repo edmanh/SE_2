@@ -2,7 +2,7 @@ import os
 import tkinter as tk
 from tkinter import ttk
 from tkinter import font as tkfont
-from frames import Desk, Empty, ByeBye, ReportTypeMenu, ViewReport, GetHistReport, SetNewReport
+from frames import Desk, Empty, ByeBye, ReportTypeMenu, ViewReport, GetHistReport, SetNewReport, GetNewReport
 import lib.config as cnf
 from lib.functions import lineno
 from lib.functions import set_dpi_awareness
@@ -131,7 +131,7 @@ class SeReporter(tk.Tk):
         container.grid_columnconfigure(0, weight=1)
 
         self.frames = {}
-        for F in (Desk, ReportTypeMenu, ViewReport, Empty, ByeBye, GetHistReport, SetNewReport):
+        for F in (Desk, ReportTypeMenu, ViewReport, Empty, ByeBye, GetHistReport, SetNewReport, GetNewReport):
             page_name = F.__name__
             # print(f'Loaded module {page_name}')
             frame = F(parent=container, controller=self)

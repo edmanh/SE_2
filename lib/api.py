@@ -22,4 +22,3 @@ class CallApi:
             print(f'Ontvangen tekst: {response.text}')
             return ''
         return response.text
-

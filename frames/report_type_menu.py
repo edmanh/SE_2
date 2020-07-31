@@ -64,7 +64,7 @@ class ReportTypeMenu(ttk.Frame):
         self.controller.lastframe()
 
     def accept(self):
-        api.name = self.v.get()  # self.parent.report_type
+        api.name = self.v.get()
         self.controller.set_trigger('newReport')
         self.controller.show_frame('SetNewReport')
         self.v.set(None)

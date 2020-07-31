@@ -11,7 +11,13 @@ class MyApi:
     # A vault for all api related parameters
     # to be shared between modules
     name = ''
+    num_args = 0
     url_args = dict()
+
+class MyReport:
+    file_content = ''
+    file_dir = ''
+    file_name = ''
     pass
 
 title_dict = {}   # api: button titles

@@ -1,8 +1,7 @@
 """
 
 """
-from datetime import datetime, timedelta
-from dateutil import relativedelta
+from datetime import datetime
 import tkinter as tk
 from tkinter import ttk
 from tkcalendar import DateEntry
@@ -53,8 +52,6 @@ class SetNewReport(ttk.Frame):
         self.p_mode = ''
         self.p_unit = ''
 
-        api.num_args = 0
-
         # defenitions background Frame
         self.grid_rowconfigure(1, weight=1)
         self.grid_rowconfigure(1, weight=1)
@@ -71,7 +68,7 @@ class SetNewReport(ttk.Frame):
                                style='PanelLabel.TLabel',
                                width=40,  # Width in chars
                                anchor=tk.CENTER)
-        page_label.grid(row=0, column=0, pady=(0, 10))
+        page_label.grid(row=0, column=0, pady=(0, 5))
 
         # row 1 of inside_frame: info_frame,
         info_frame_label = tk.Label(self.inside_frame, text=' Aanwijzingen ', font=cnf.fh12, fg='black', bg='#ffefd8')
@@ -186,7 +183,7 @@ class SetNewReport(ttk.Frame):
         self.unit_var = tk.StringVar()
         self.unit_var.set(gl.list_of_units_nl[0])
         self.unit = ttk.OptionMenu(self.fr_unit, self.unit_var, *gl.list_of_units_nl,
-                                   command=lambda x: self.set_time_unit(self, x))
+                                   command=lambda x: self.set_time_unit(x))  # in original self was forwarded also
         self.unit_var.set(gl.list_of_units_nl[0])
         self.unit['menu'].configure(font=cnf.fa12)
         self.unit.configure(style='ChoiceButton.TButton')
@@ -194,11 +191,11 @@ class SetNewReport(ttk.Frame):
         self.fr_unit.grid(row=2, column=1, pady=(10, 10), padx=(10, 10))
         self.fr_unit.grid_propagate(0)
 
-        acceptbutton = tk.Button(self.inside_frame, text='Verder',
+        self.acceptbutton = tk.Button(self.inside_frame, text='Verder',
                                  background='black', foreground='white',
                                  width=20, height=2, font=cnf.fa12,
                                  command=lambda: self.accept())
-        acceptbutton.grid(row=6, column=0, sticky='E', padx=0, pady=20)
+        self.acceptbutton.grid(row=6, column=0, sticky='E', padx=0, pady=20)
 
         backbutton = tk.Button(self.inside_frame, text='Terug',
                                  background='black', foreground='white',
@@ -207,7 +204,8 @@ class SetNewReport(ttk.Frame):
         backbutton.grid(row=6, column=0, sticky='W', padx=0, pady=20)
 
     @staticmethod
-    def set_time_unit(self, val):
+    def set_time_unit(val):
+        # For future improvements only
         print(f'returned val: {val}')
         pass
 
@@ -309,7 +307,7 @@ class SetNewReport(ttk.Frame):
                 if len(self.p_unit) > 1:
                     self.unit_var.set(self.p_unit)
 
-            print(lineno(), 'self.url_fields = {self.url_fields}')
+            print(lineno(), f'self.url_fields = {self.url_fields}')
             base_width = self.info_frame.winfo_width()
             self.fr_settings.configure(width=base_width)
         print(f"Var's in {__name__}: {dir()}")
@@ -319,6 +317,9 @@ class SetNewReport(ttk.Frame):
 
     def accept(self):
         # User pushed ready button
+        if api.num_args == 0:
+            self.controller.show_frame('GetNewReport')
+            return
         # entered values must be api formatted and checked
         self.period_start = str(self.start_date.get_date())
         if self.p_mode != 'date':
@@ -344,12 +345,10 @@ class SetNewReport(ttk.Frame):
         print(lineno(), f'self.period_start = {self.period_start}, '
               f'self.period_end = {self.period_end}, \nself.period_unit = {self.period_unit}')
 
-        if not self.check_request(self,
-                                  api.name,
+        if not self.check_request(api.name,
                                   str(self.period_start),
                                   str(self.period_end),
-                                  self.period_unit,
-                                  self.p_mode):
+                                  self.period_unit):
             TopMessage(cnf.wfquit, 'Foutje', 'De ingevoerde waarden in dit verzoek zijn niet toegestaan')
             return
         else:
@@ -362,50 +361,45 @@ class SetNewReport(ttk.Frame):
             self.call_dialog(**dp)
             if gl.next_step == 'no action':
                 return
-            # First ask for saving parameters
-            dp.clear()
-            dp['title'] = 'Nog een vraagje ..'
-            dp['message'] = 'Instellingen eerst opslaan (in database) als nieuwe basiswaarde?'
-            dp['deny'] = 'Terug'
-            dp['accept'] = 'Opslaan graag'
-            self.call_dialog(**dp)
-            if gl.next_step == 'no action':
-                return
-            # Save new values in database
-            print(f'{__name__}-{lineno()}: api.url_args = {api.url_args}')
-            query = 'UPDATE settings SET '
-            for name, val in api.url_args.items():
-                if name == 'timeUnit':
-                    if val in gl.list_of_units_en:
-                        val = gl.list_of_units_nl[gl.list_of_units_en.index(val)]
-                query += f'{name} = "{val}", '
-            query = query[0:-2]  # remove last comma-space
-            query += f' WHERE name = "{api.name}"'
-            print(lineno(), f'query = {query}')
-            rows = func.actdb.exec_update(query)
-            if rows > 0:
-                selogger.info('Laatste instellingen opgeslagen.')
+            if api.num_args > 0:
+                # Ask for saving (modified) parameters
+                dp.clear()
+                dp['title'] = 'Nog een vraagje ..'
+                dp['message'] = 'Instellingen eerst opslaan (in database) als nieuwe basiswaarde?'
+                dp['deny'] = 'Terug'
+                dp['accept'] = 'Opslaan graag'
+                self.call_dialog(**dp)
+                if gl.next_step == 'no action':
+                    return
+                # Save new values in database
+                print(f'{__name__}-{lineno()}: api.url_args = {api.url_args}')
+                query = 'UPDATE settings SET '
+                for name in api.url_args:
+                    val = ''
+                    if name == 'timeUnit':
+                        val = self.period_unit
+                        if val in gl.list_of_units_en:
+                            val = gl.list_of_units_nl[gl.list_of_units_en.index(val)]
+                    elif name in ('startTime', 'startDate'):
+                        val = self.period_start
+                    elif name in ('endTime', 'endDate'):
+                        val = self.period_end
+                    query += f'{name} = "{val}", '
+                query = query[0:-2]  # remove last comma-space
+                query += f' WHERE name = "{api.name}"'
+                print(lineno(), f'query = {query}')
+                rows = func.actdb.exec_update(query)
+                if rows > 0:
+                    selogger.info('Laatste instellingen opgeslagen.')
+            # self.controller.set_trigger('newReport')
+            self.controller.show_frame('GetNewReport')
 
         #   =========================================================================================
 
     @staticmethod
-    def check_request(self, api_choice, strt_moment, end_moment, unit, pmode):
-        # Validate user choices of 'energy', 'timeFrameEnergy','power','powerDetails','energyDetails'
-        if pmode == 'date':
-            pformat = "%Y-%m-%d"
-        else:   # pmode == 'time'
-            pformat = "%Y-%m-%d %H:%M:%S"
-        #  print(f'{__name__}-{lineno()}: pformat = {pformat}')
-        print(f'{__name__}-{lineno()}: strt_moment = {strt_moment}')
-        print(f'{__name__}-{lineno()}: end_moment = {end_moment}')
-        dt_obj_strt = datetime.strptime(strt_moment, pformat)
-        dt_obj_end = datetime.strptime(end_moment, pformat)
-        r = relativedelta.relativedelta(dt_obj_end, dt_obj_strt)
-        print(f'{__name__}-{lineno()}: r.years = {r.years}, r.months = {r.months}, r.days = {r.days}, r.hours = {r.hours}, r.minutes: {r.minutes}')
-        print(f'{__name__}-{lineno()}: unit = {unit}')
+    def check_request(api_choice, strt_moment, end_moment, unit):
+        """ Validate user choices of 'energy', 'timeFrameEnergy','power','powerDetails','energyDetails' """
         ret_val = False
-        print(f'{__name__}-{lineno()}: api_choice = {api_choice}')
-
         # Checking settings per api
         d = dict()
         d['strt'] = strt_moment

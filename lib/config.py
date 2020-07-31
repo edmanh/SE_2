@@ -5,20 +5,18 @@
 from os import getcwd
 import sys
 
-sys.path.insert(0, 'D:\CloudStation\Developments\SolarEdge')  # Location of private files
-from private import PrivateValues
+sys.path.insert(0, 'D:\\CloudStation\\Developments\\SolarEdge')  # Location of private files
+from private import PrivateValues as PV                          # not recognised by PyCharm !!
 
-# If project not alive calls to web site will be skipped
-testing = True
-wfquit = 5000  # Wait for quit == automatic close message pop-up
+project_alive = True    # If project not alive calls to web site will be skipped
+wfquit = 5000           # Wait for quit == automatic close message pop-up
 
-# Private fixed api arguments
-my_key = PrivateValues.my_key
-my_id = PrivateValues.my_id
+# Private fixed api arguments stored in location outside project
+my_key = PV.my_key
+my_id = PV.my_id
 
 # System settings
-report_dir = 'reports\\'  # Without a preceding '\', this is appended to the program dir.
-myhome = getcwd()
+report_dir = '..\\SolarEdge\\reports\\'  # Without a preceding '\', this is appended to the program dir.
 tmp_file = 'new_report.txt'
 
 # My standard fonts

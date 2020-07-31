@@ -65,7 +65,7 @@ endTime text\
 
 def get_api_values(api_name):
     # Load last used values for api a_name, if available and else all defaults
-    a_query = f'SELECT * FROM settings WHERE api_name = "{api_name}"'
+    a_query = f'SELECT * FROM settings WHERE name = "{api_name}"'
     print(f'{__name__}-{lineno()}: query = {a_query}')
     a_names, a_rows = actdb.exec_select(a_query)
     a_row = a_rows[0]  # Result of final query
