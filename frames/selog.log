@@ -1,0 +1,8 @@
+db connected
+Table settings wordt opgebouwd...
+Creating with: CREATE TABLE settings (id integer PRIMARY KEY AUTOINCREMENT,api_name text ,timeUnit text,startDate text,endDate text,startTime text,endTime text)
+db connected
+db connected
+db connected
+db connected
+db connected
